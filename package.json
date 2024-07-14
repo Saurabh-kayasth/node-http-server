@@ -1,0 +1,39 @@
+{
+  "name": "node-ts-npm-pkg-boilerplate",
+  "version": "1.0.2",
+  "description": "",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "prepare": "husky install",
+    "commit": "cz",
+    "lint-staged": "lint-staged",
+    "format": "prettier --write .",
+    "release": "standard-version && git push --follow-tags",
+    "publish-package": "npm run build && npm publish"
+  },
+  "keywords": [],
+  "author": "Saurabh Kayasth",
+  "license": "ISC",
+  "devDependencies": {
+    "@commitlint/cli": "^19.3.0",
+    "@commitlint/config-conventional": "^19.2.2",
+    "@commitlint/cz-commitlint": "^19.2.0",
+    "@types/node": "^20.12.12",
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.2",
+    "prettier": "3.2.5",
+    "typescript": "^5.4.5",
+    "standard-version": "^9.5.0",
+    "semantic-release": "^17.2.1"
+  },
+  "config": {
+    "commitizen": {
+      "path": "@commitlint/cz-commitlint"
+    }
+  },
+  "dependencies": {},
+  "publishConfig": {}
+}
