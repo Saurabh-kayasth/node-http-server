@@ -1,6 +1,6 @@
 {
-  "name": "node-ts-npm-pkg-boilerplate",
-  "version": "1.0.2",
+  "name": "node-http-server",
+  "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
