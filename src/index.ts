@@ -1,5 +1,5 @@
-function hello() {
-    console.log("hello")
-}
+import { PORT } from './config/ServerConfig';
+import TCPServer from './core/httpServer';
 
-export { hello };
+const server = new TCPServer(PORT);
+server.start();

@@ -12,7 +12,8 @@
     "lint-staged": "lint-staged",
     "format": "prettier --write .",
     "release": "standard-version && git push --follow-tags",
-    "publish-package": "npm run build && npm publish"
+    "publish-package": "npm run build && npm publish",
+    "start": "node dist/index.js"
   },
   "keywords": [],
   "author": "Saurabh Kayasth",
