@@ -1,10 +1,17 @@
 import net from 'net';
-import { PORT } from '../config/ServerConfig';
+import Router from './Router';
+import { ReqMethod } from './types';
 
 export default class TCPServer {
   private server: net.Server;
 
-  constructor(private port: number) {
+  private router: Router;
+
+  constructor(
+    private port: number,
+    router: Router,
+  ) {
+    this.router = router;
     this.server = net.createServer(this.handleConnection.bind(this));
   }
 
@@ -14,6 +21,11 @@ export default class TCPServer {
     });
   }
 
+  /*
+    For an HTTP server, each connection typically corresponds to a single request-response cycle. 
+    After handling the request and sending the response, the connection is often closed (in HTTP/1.0) 
+    or the connection might be reused for further requests (in HTTP/1.1 with keep-alive).
+  */
   private handleConnection(socket: net.Socket): void {
     socket.once('readable', () => {
       this.readRequest(socket);
@@ -33,13 +45,17 @@ export default class TCPServer {
       reqBuffer = Buffer.concat([reqBuffer, buffer]);
 
       const HEADER_LENGTH = 4; // "\r\n\r\n" length
-      let marker = reqBuffer.indexOf('\r\n\r\n');
+      let marker = reqBuffer.indexOf('\r\n\r\n'); // marks the end of the HTTP headers
 
       if (marker !== -1) {
         let remaining = reqBuffer.slice(marker + HEADER_LENGTH);
 
         reqHeader = reqBuffer.slice(0, marker).toString();
 
+        /*
+          This is used to push the remaining buffer back into the socket's internal read queue.
+          This ensures that the next read operation on the socket will start with the remaining data.
+        */
         socket.unshift(remaining);
         break;
       }
@@ -60,14 +76,23 @@ export default class TCPServer {
   }
 
   private handleRequest(socket: net.Socket, reqHeader: string | undefined, reqBody: Buffer): void {
-    console.log('====================================');
-    console.log('Request Header:');
-    console.log(reqHeader);
-    console.log('====================================');
-    console.log('Request Body:');
-    console.log(reqBody.toString());
-    console.log('====================================');
+    if (!reqHeader) return;
 
-    socket.end('HTTP/1.1 200 OK\r\nServer: my-custom-server\r\nContent-Length: 0\r\n\r\n');
+    const lines = reqHeader.split('\r\n');
+    const [method, path, httpVersion] = lines[0].split(' ');
+
+    const headers: { [key: string]: string } = {};
+    for (let i = 1; i < lines.length; i++) {
+      const [key, value] = lines[i].split(': ');
+      headers[key] = value;
+    }
+
+    this.router.handleRequest({
+      socket,
+      method: method as ReqMethod,
+      pathname: path,
+      headers,
+      body: reqBody,
+    });
   }
 }
