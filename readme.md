@@ -2,6 +2,8 @@
 
 A lightweight version of Express.js built from scratch using Node.js's net module. This project is designed to provide insights into web server architecture and handling HTTP requests and responses at a low level.
 
+![Screenshot 2024-08-04 at 1 51 35 PM](https://github.com/user-attachments/assets/f80db54d-5f46-4637-9cc6-3d2aa9b42a16)
+
 ## Features
 
 - Custom TCP Server: Implements a server using Node.js’s net module to handle raw TCP connections.
