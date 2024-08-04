@@ -87,12 +87,41 @@ export default class TCPServer {
       headers[key] = value;
     }
 
-    this.router.handleRequest({
-      socket,
+    const req = {
       method: method as ReqMethod,
       pathname: path,
       headers,
       body: reqBody,
+    };
+
+    const res = {
+      end: (responseBody: string) => {
+        const responseHeader = `HTTP/1.1 200 OK\r\nContent-Length: ${responseBody.length}\r\n\r\n`;
+        socket.end(responseHeader + responseBody);
+      },
+      writeHead: (status: number, headers: { [key: string]: string }) => {
+        socket.write(`HTTP/1.1 ${status}\r\n`);
+        for (const [key, value] of Object.entries(headers)) {
+          socket.write(`${key}: ${value}\r\n`);
+        }
+        socket.write('\r\n');
+      },
+    };
+
+    this.handleMiddleware(req, res, () => {
+      this.router.handleRequest(req, res, socket);
     });
+  }
+
+  private handleMiddleware(req: any, res: any, next: () => void): void {
+    const executeMiddleware = (index: number) => {
+      if (index < this.router.middleware.length) {
+        this.router.middleware[index](req, res, () => executeMiddleware(index + 1));
+      } else {
+        next();
+      }
+    };
+
+    executeMiddleware(0);
   }
 }

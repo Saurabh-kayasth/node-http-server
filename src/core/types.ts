@@ -25,4 +25,6 @@ type AddRouteArgs = {
   handler: RouteHandler;
 };
 
-export type { HandleRequestArgs, ReqMethod, RouteHandler, Route, AddRouteArgs };
+type Middleware = (req: any, res: any, next: () => void) => void;
+
+export type { HandleRequestArgs, ReqMethod, RouteHandler, Route, AddRouteArgs, Middleware };

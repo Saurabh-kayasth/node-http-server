@@ -1,8 +1,14 @@
 import net from 'net';
-import { AddRouteArgs, HandleRequestArgs, Route, RouteHandler } from './types';
+import { AddRouteArgs, HandleRequestArgs, Middleware, Route, RouteHandler } from './types';
 
 class Router {
   private routes: Route[] = [];
+
+  public middleware: Middleware[] = [];
+
+  public use(middleware: Middleware): void {
+    this.middleware.push(middleware);
+  }
 
   public get(path: string, handler: RouteHandler): void {
     this.addRoute({ method: 'GET', path, handler });
@@ -35,11 +41,10 @@ class Router {
     this.routes.push({ method, path: regexPath, handler, params: paramNames });
   }
 
-  public handleRequest(args: HandleRequestArgs): void {
-    const { pathname, method, body, headers, socket } = args;
+  public handleRequest(req: any, res: any, socket: net.Socket): void {
     for (const route of this.routes) {
-      const match = pathname.match(route.path);
-      if (match && route.method === method) {
+      const match = req.pathname.match(route.path);
+      if (match && route.method === req.method) {
         const params: { [key: string]: string } = {};
         if (route.params) {
           route.params.forEach((paramName: string, index: number) => {
@@ -47,16 +52,18 @@ class Router {
           });
         }
 
-        const req = { method, pathname, headers, body, params };
+        req.params = params;
 
-        const res = {
-          end: (responseBody: string) => {
-            const responseHeader = `HTTP/1.1 200 OK\r\nContent-Length: ${responseBody.length}\r\n\r\n`;
-            socket.end(responseHeader + responseBody);
-          },
+        const executeMiddleware = (index: number) => {
+          if (index < this.middleware.length) {
+            this.middleware[index](req, res, () => executeMiddleware(index + 1));
+          } else {
+            route.handler(req, res);
+          }
         };
 
-        return route.handler(req, res);
+        executeMiddleware(0);
+        return;
       }
     }
 

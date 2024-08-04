@@ -3,6 +3,23 @@ import Router from './core/Router';
 import TCPServer from './core/TCPServer';
 
 const router = new Router();
+const server = new TCPServer(PORT, router);
+
+router.use((req, res, next) => {
+  if (req.method === 'GET') {
+    return next();
+  }
+
+  const authHeader = req.headers['Authorization'];
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.substring(7);
+    next();
+  } else {
+    res.writeHead(401, { 'Content-Type': 'text/plain' });
+    res.end('Unauthorized');
+  }
+  next();
+});
 
 router.get('/users/:id', async (req, res) => {
   const { id } = req.params;
@@ -28,5 +45,4 @@ router.put('/users/:id', async (req, res) => {
   res.end(`User ${id} put`);
 });
 
-const server = new TCPServer(PORT, router);
 server.start();
